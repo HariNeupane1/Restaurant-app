@@ -1,0 +1,2862 @@
+import 'package:flutter/material.dart';
+
+void main() {
+  runApp(const NamasteRestaurantApp());
+}
+
+// ============================================================
+// NAMASTE RESTAURANT MANAGEMENT SYSTEM
+// Single File Flutter Application
+// Developed by: Hari Neupane
+// ============================================================
+
+// ============================================================
+// MODELS
+// ============================================================
+
+class Food {
+  final String name;
+  final String category;
+  final double price;
+  final bool alcoholic;
+  bool available;
+
+  Food({
+    required this.name,
+    required this.category,
+    required this.price,
+    this.alcoholic = false,
+    this.available = true,
+  });
+}
+
+class CartItem {
+  final Food food;
+  int quantity;
+
+  CartItem({
+    required this.food,
+    this.quantity = 1,
+  });
+
+  double get total => food.price * quantity;
+}
+
+class RestaurantOrder {
+  final int id;
+  final List<CartItem> items;
+  final double total;
+  final DateTime time;
+  String status;
+  String paymentMethod;
+
+  RestaurantOrder({
+    required this.id,
+    required this.items,
+    required this.total,
+    required this.time,
+    this.status = 'Pending',
+    this.paymentMethod = 'Cash',
+  });
+}
+
+class Expense {
+  final String title;
+  final double amount;
+  final DateTime date;
+
+  Expense({
+    required this.title,
+    required this.amount,
+    required this.date,
+  });
+}
+
+class StaffMember {
+  final String name;
+  final String role;
+  bool present;
+
+  StaffMember({
+    required this.name,
+    required this.role,
+    this.present = false,
+  });
+}
+
+// ============================================================
+// APP
+// ============================================================
+
+class NamasteRestaurantApp extends StatelessWidget {
+  const NamasteRestaurantApp({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      debugShowCheckedModeBanner: false,
+      title: 'Namaste Restaurant',
+      theme: ThemeData(
+        useMaterial3: true,
+        colorSchemeSeed: Colors.blue,
+        scaffoldBackgroundColor: const Color(0xfff5f8ff),
+        appBarTheme: const AppBarTheme(
+          backgroundColor: Colors.blue,
+          foregroundColor: Colors.white,
+          centerTitle: true,
+        ),
+        cardTheme: CardThemeData(
+          elevation: 2,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+        ),
+        inputDecorationTheme: InputDecorationTheme(
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+        ),
+      ),
+      home: const LoginPage(),
+    );
+  }
+}
+
+// ============================================================
+// LOGIN PAGE
+// ============================================================
+
+class LoginPage extends StatefulWidget {
+  const LoginPage({super.key});
+
+  @override
+  State<LoginPage> createState() => _LoginPageState();
+}
+
+class _LoginPageState extends State<LoginPage> {
+  final username = TextEditingController();
+  final password = TextEditingController();
+
+  bool obscure = true;
+
+  void login() {
+    if (username.text.trim() == 'admin' &&
+        password.text.trim() == '1234') {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (_) => const RestaurantHome(),
+        ),
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Invalid username or password'),
+        ),
+      );
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: Container(
+        width: double.infinity,
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            colors: [
+              Colors.blue,
+              Color(0xff0d47a1),
+            ],
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+          ),
+        ),
+        child: Center(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(24),
+            child: Card(
+              elevation: 12,
+              child: Padding(
+                padding: const EdgeInsets.all(28),
+                child: Column(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(18),
+                      decoration: BoxDecoration(
+                        color: Colors.blue,
+                        shape: BoxShape.circle,
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.blue.withOpacity(.3),
+                            blurRadius: 15,
+                          ),
+                        ],
+                      ),
+                      child: const Icon(
+                        Icons.restaurant,
+                        size: 50,
+                        color: Colors.white,
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+                    const Text(
+                      'Namaste Restaurant',
+                      style: TextStyle(
+                        fontSize: 28,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.blue,
+                      ),
+                    ),
+                    const SizedBox(height: 5),
+                    const Text(
+                      'Restaurant Management System',
+                    ),
+                    const SizedBox(height: 30),
+                    TextField(
+                      controller: username,
+                      decoration: const InputDecoration(
+                        labelText: 'Username',
+                        prefixIcon: Icon(Icons.person),
+                      ),
+                    ),
+                    const SizedBox(height: 15),
+                    TextField(
+                      controller: password,
+                      obscureText: obscure,
+                      decoration: InputDecoration(
+                        labelText: 'Password',
+                        prefixIcon: const Icon(Icons.lock),
+                        suffixIcon: IconButton(
+                          onPressed: () {
+                            setState(() {
+                              obscure = !obscure;
+                            });
+                          },
+                          icon: Icon(
+                            obscure
+                                ? Icons.visibility
+                                : Icons.visibility_off,
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+                    ElevatedButton.icon(
+                      onPressed: login,
+                      icon: const Icon(Icons.login),
+                      label: const Text('LOGIN'),
+                    ),
+                    const SizedBox(height: 15),
+                    const Text(
+                      'Demo Login: admin / 1234',
+                      style: TextStyle(
+                        color: Colors.grey,
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+                    const Text(
+                      'Developed by Hari Neupane',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// ============================================================
+// MAIN RESTAURANT
+// ============================================================
+
+class RestaurantHome extends StatefulWidget {
+  const RestaurantHome({super.key});
+
+  @override
+  State<RestaurantHome> createState() => _RestaurantHomeState();
+}
+
+class _RestaurantHomeState extends State<RestaurantHome> {
+  int pageIndex = 0;
+
+  String searchText = '';
+  String selectedCategory = 'All';
+
+  // ==========================================================
+  // COMPLETE RESTAURANT MENU
+  // ==========================================================
+
+  final List<Food> menu = [
+    // ---------------- THALI ----------------
+
+    Food(
+      name: 'Roti Tarkari',
+      category: 'Thali',
+      price: 150,
+    ),
+    Food(
+      name: 'Chicken Thali Set',
+      category: 'Thali',
+      price: 280,
+    ),
+    Food(
+      name: 'Mutton Thali Set',
+      category: 'Thali',
+      price: 350,
+    ),
+    Food(
+      name: 'Buff Thali Set',
+      category: 'Thali',
+      price: 250,
+    ),
+    Food(
+      name: 'Pork Thali Set',
+      category: 'Thali',
+      price: 280,
+    ),
+    Food(
+      name: 'Fish Thali Set',
+      category: 'Thali',
+      price: 280,
+    ),
+    Food(
+      name: 'Veg Thali Set',
+      category: 'Thali',
+      price: 250,
+    ),
+    Food(
+      name: 'Dal Bhat Tarkari',
+      category: 'Thali',
+      price: 150,
+    ),
+
+    // ---------------- MOMO ----------------
+
+    Food(
+      name: 'Veg Momo',
+      category: 'Momo',
+      price: 130,
+    ),
+    Food(
+      name: 'Buff Momo',
+      category: 'Momo',
+      price: 160,
+    ),
+    Food(
+      name: 'Chicken Momo',
+      category: 'Momo',
+      price: 180,
+    ),
+    Food(
+      name: 'Pork Momo',
+      category: 'Momo',
+      price: 180,
+    ),
+    Food(
+      name: 'Fried Momo',
+      category: 'Momo',
+      price: 180,
+    ),
+    Food(
+      name: 'Jhol Momo',
+      category: 'Momo',
+      price: 200,
+    ),
+    Food(
+      name: 'C Momo',
+      category: 'Momo',
+      price: 220,
+    ),
+    Food(
+      name: 'Chilly Momo',
+      category: 'Momo',
+      price: 220,
+    ),
+
+    // ---------------- CHOWMEIN ----------------
+
+    Food(
+      name: 'Veg Chowmein',
+      category: 'Chowmein',
+      price: 140,
+    ),
+    Food(
+      name: 'Egg Chowmein',
+      category: 'Chowmein',
+      price: 160,
+    ),
+    Food(
+      name: 'Buff Chowmein',
+      category: 'Chowmein',
+      price: 180,
+    ),
+    Food(
+      name: 'Chicken Chowmein',
+      category: 'Chowmein',
+      price: 200,
+    ),
+    Food(
+      name: 'Mixed Chowmein',
+      category: 'Chowmein',
+      price: 230,
+    ),
+
+    // ---------------- THUKPA ----------------
+
+    Food(
+      name: 'Veg Thukpa',
+      category: 'Thukpa',
+      price: 140,
+    ),
+    Food(
+      name: 'Egg Thukpa',
+      category: 'Thukpa',
+      price: 160,
+    ),
+    Food(
+      name: 'Buff Thukpa',
+      category: 'Thukpa',
+      price: 180,
+    ),
+    Food(
+      name: 'Chicken Thukpa',
+      category: 'Thukpa',
+      price: 200,
+    ),
+    Food(
+      name: 'Mixed Thukpa',
+      category: 'Thukpa',
+      price: 230,
+    ),
+
+    // ---------------- PARATHA ----------------
+
+    Food(
+      name: 'Plain Paratha',
+      category: 'Paratha',
+      price: 100,
+    ),
+    Food(
+      name: 'Aloo Paratha',
+      category: 'Paratha',
+      price: 130,
+    ),
+    Food(
+      name: 'Egg Paratha',
+      category: 'Paratha',
+      price: 150,
+    ),
+    Food(
+      name: 'Chicken Paratha',
+      category: 'Paratha',
+      price: 200,
+    ),
+
+    // ---------------- CHICKEN ----------------
+
+    Food(
+      name: 'Chicken Fry',
+      category: 'Chicken',
+      price: 250,
+    ),
+    Food(
+      name: 'Chicken Chilly',
+      category: 'Chicken',
+      price: 250,
+    ),
+    Food(
+      name: 'Chicken Sadheko',
+      category: 'Chicken',
+      price: 250,
+    ),
+    Food(
+      name: 'Chicken Roast',
+      category: 'Chicken',
+      price: 280,
+    ),
+    Food(
+      name: 'Chicken Wings',
+      category: 'Chicken',
+      price: 250,
+    ),
+    Food(
+      name: 'Chicken Lollipop',
+      category: 'Chicken',
+      price: 280,
+    ),
+    Food(
+      name: 'Chicken Tikka',
+      category: 'Chicken',
+      price: 300,
+    ),
+    Food(
+      name: 'Chicken Gravy',
+      category: 'Chicken',
+      price: 280,
+    ),
+
+    // ---------------- BUFF ----------------
+
+    Food(
+      name: 'Buff Fry',
+      category: 'Buff',
+      price: 250,
+    ),
+    Food(
+      name: 'Buff Chilly',
+      category: 'Buff',
+      price: 250,
+    ),
+    Food(
+      name: 'Buff Sadheko',
+      category: 'Buff',
+      price: 250,
+    ),
+    Food(
+      name: 'Buff Sukuti',
+      category: 'Buff',
+      price: 300,
+    ),
+    Food(
+      name: 'Buff Bhutuwa',
+      category: 'Buff',
+      price: 300,
+    ),
+
+    // ---------------- MUTTON ----------------
+
+    Food(
+      name: 'Mutton Fry',
+      category: 'Mutton',
+      price: 350,
+    ),
+    Food(
+      name: 'Mutton Curry',
+      category: 'Mutton',
+      price: 350,
+    ),
+    Food(
+      name: 'Mutton Gravy',
+      category: 'Mutton',
+      price: 350,
+    ),
+    Food(
+      name: 'Mutton Sadheko',
+      category: 'Mutton',
+      price: 350,
+    ),
+    Food(
+      name: 'Mutton Sukuti',
+      category: 'Mutton',
+      price: 350,
+    ),
+
+    // ---------------- PORK ----------------
+
+    Food(
+      name: 'Pork Fry',
+      category: 'Pork',
+      price: 280,
+    ),
+    Food(
+      name: 'Pork Chilly',
+      category: 'Pork',
+      price: 280,
+    ),
+    Food(
+      name: 'Pork Sadheko',
+      category: 'Pork',
+      price: 280,
+    ),
+    Food(
+      name: 'Pork Bhutuwa',
+      category: 'Pork',
+      price: 300,
+    ),
+
+    // ---------------- FISH ----------------
+
+    Food(
+      name: 'Fish Fry',
+      category: 'Fish',
+      price: 250,
+    ),
+    Food(
+      name: 'Fish Chilly',
+      category: 'Fish',
+      price: 280,
+    ),
+    Food(
+      name: 'Fish Sadheko',
+      category: 'Fish',
+      price: 280,
+    ),
+    Food(
+      name: 'Fish Gravy',
+      category: 'Fish',
+      price: 280,
+    ),
+
+    // ---------------- PANGRA / FOKSO ----------------
+
+    Food(
+      name: 'Pangra Fry',
+      category: 'Special Fry',
+      price: 220,
+    ),
+    Food(
+      name: 'Pangra Sadheko',
+      category: 'Special Fry',
+      price: 240,
+    ),
+    Food(
+      name: 'Pangra Chilly',
+      category: 'Special Fry',
+      price: 240,
+    ),
+    Food(
+      name: 'Fokso Fry',
+      category: 'Special Fry',
+      price: 200,
+    ),
+    Food(
+      name: 'Fokso Sadheko',
+      category: 'Special Fry',
+      price: 200,
+    ),
+    Food(
+      name: 'Fokso Chilly',
+      category: 'Special Fry',
+      price: 200,
+    ),
+
+    // ---------------- NEWARI / KHAJA ----------------
+
+    Food(
+      name: 'Newari Khaja Set',
+      category: 'Khaja',
+      price: 300,
+    ),
+    Food(
+      name: 'Chicken Khaja Set',
+      category: 'Khaja',
+      price: 320,
+    ),
+    Food(
+      name: 'Buff Khaja Set',
+      category: 'Khaja',
+      price: 320,
+    ),
+    Food(
+      name: 'Aalu Sadheko',
+      category: 'Khaja',
+      price: 100,
+    ),
+    Food(
+      name: 'Bhatmas Sadheko',
+      category: 'Khaja',
+      price: 120,
+    ),
+    Food(
+      name: 'Chicken Choila',
+      category: 'Khaja',
+      price: 280,
+    ),
+    Food(
+      name: 'Buff Choila',
+      category: 'Khaja',
+      price: 280,
+    ),
+
+    // ---------------- SNACKS ----------------
+
+    Food(
+      name: 'Pakoda',
+      category: 'Snacks',
+      price: 100,
+    ),
+    Food(
+      name: 'Onion Pakoda',
+      category: 'Snacks',
+      price: 100,
+    ),
+    Food(
+      name: 'Chicken Pakoda per plate',
+      category: 'Snacks',
+      price: 100,
+    ),
+    Food(
+      name: 'Aloo Stick',
+      category: 'Snacks',
+      price: 120,
+    ),
+    Food(
+      name: 'French Fries',
+      category: 'Snacks',
+      price: 150,
+    ),
+    Food(
+      name: 'Chatpate',
+      category: 'Snacks',
+      price: 100,
+    ),
+    Food(
+      name: 'Peanut Sadheko',
+      category: 'Snacks',
+      price: 100,
+    ),
+    Food(
+      name: 'Chana Sadheko',
+      category: 'Snacks',
+      price: 100,
+    ),
+
+    // ---------------- FAST FOOD ----------------
+
+    Food(
+      name: 'Chicken Sausage',
+      category: 'Fast Food',
+      price: 150,
+    ),
+    Food(
+      name: 'Buff Sausage',
+      category: 'Fast Food',
+      price: 150,
+    ),
+    Food(
+      name: 'Chicken Nuggets',
+      category: 'Fast Food',
+      price: 200,
+    ),
+    Food(
+      name: 'Chicken Finger',
+      category: 'Fast Food',
+      price: 220,
+    ),
+    Food(
+      name: 'Chicken Burger',
+      category: 'Fast Food',
+      price: 220,
+    ),
+    Food(
+      name: 'Veg Burger',
+      category: 'Fast Food',
+      price: 180,
+    ),
+    Food(
+      name: 'Chicken Sandwich',
+      category: 'Fast Food',
+      price: 220,
+    ),
+
+    // ---------------- EGG ----------------
+
+    Food(
+      name: 'Boiled Egg',
+      category: 'Egg',
+      price: 40,
+    ),
+    Food(
+      name: 'Omelette',
+      category: 'Egg',
+      price: 100,
+    ),
+    Food(
+      name: 'Masala Omelette',
+      category: 'Egg',
+      price: 120,
+    ),
+    Food(
+      name: 'Egg Fry',
+      category: 'Egg',
+      price: 100,
+    ),
+    Food(
+      name: 'Egg Chilly',
+      category: 'Egg',
+      price: 150,
+    ),
+
+    // ---------------- VEGETARIAN ----------------
+
+    Food(
+      name: 'Mixed Vegetable',
+      category: 'Vegetarian',
+      price: 150,
+    ),
+    Food(
+      name: 'Aloo Tama',
+      category: 'Vegetarian',
+      price: 150,
+    ),
+    Food(
+      name: 'Aloo Fry',
+      category: 'Vegetarian',
+      price: 120,
+    ),
+    Food(
+      name: 'Aloo Jeera',
+      category: 'Vegetarian',
+      price: 120,
+    ),
+    Food(
+      name: 'Paneer Chilly',
+      category: 'Vegetarian',
+      price: 220,
+    ),
+    Food(
+      name: 'Paneer Fry',
+      category: 'Vegetarian',
+      price: 220,
+    ),
+
+    // ---------------- BREAKFAST ----------------
+         Food(
+      name: 'Roti tarkari',
+      category: 'Breakfast',
+      price: 70,
+    )
+        Food(
+      name: 'Egg Roti without Dahi',
+      category: 'Breakfast',
+      price: 100,
+    )
+    Food(
+      name: 'Egg Roti included Dahi',
+      category: 'Breakfast',
+      price: 120,
+    ),
+    Food(
+      name: 'Roti Tarkari Breakfast with Dahi',
+      category: 'Breakfast',
+      price: 100,
+    ),
+    Food(
+      name: 'Paratha Tarkari',
+      category: 'Breakfast',
+      price: 120,
+    ),
+    Food(
+      name: 'Chiura Tarkari',
+      category: 'Breakfast',
+      price: 120,
+    ),
+
+    // ---------------- HOT DRINKS ----------------
+
+    Food(
+      name: 'Black Tea',
+      category: 'Hot Drinks',
+      price: 25,
+    ),
+    Food(
+      name: 'Milk Tea',
+      category: 'Hot Drinks',
+      price: 30,
+    ),
+    Food(
+      name: 'Black Coffee',
+      category: 'Hot Drinks',
+      price: 50,
+    ),
+    Food(
+      name: 'Milk Coffee',
+      category: 'Hot Drinks',
+      price: 80,
+    ),
+    Food(
+      name: 'Green Tea',
+      category: 'Hot Drinks',
+      price: 50,
+    ),
+    Food(
+      name: 'Lemon Tea',
+      category: 'Hot Drinks',
+      price: 40,
+    ),
+
+    // ---------------- SOFT DRINKS ----------------
+
+    Food(
+      name: 'Mineral Water',
+      category: 'Soft Drinks',
+      price: 30,
+    ),
+    Food(
+      name: 'Coke',
+      category: 'Soft Drinks',
+      price: 80,
+    ),
+    Food(
+      name: 'Fanta',
+      category: 'Soft Drinks',
+      price: 80,
+    ),
+    Food(
+      name: 'Sprite',
+      category: 'Soft Drinks',
+      price: 80,
+    ),
+    Food(
+      name: 'Slice',
+      category: 'Soft Drinks',
+      price: 80,
+    ),
+    Food(
+      name: 'Juice',
+      category: 'Soft Drinks',
+      price: 100,
+    ),
+    Food(
+      name: 'Lemon Juice',
+      category: 'Soft Drinks',
+      price: 100,
+    ),
+    Food(
+      name: 'Lassi',
+      category: 'Soft Drinks',
+      price: 120,
+    ),
+
+    // ========================================================
+    // ALCOHOLIC BEVERAGES
+    // Replace these sample items/prices with your actual
+    // licensed beverage inventory.
+    // ========================================================
+
+    Food(
+      name: 'Beer',
+      category: 'Alcohol',
+      price: 300,
+      alcoholic: true,
+    ),
+    Food(
+      name: 'Premium Beer',
+      category: 'Alcohol',
+      price: 400,
+      alcoholic: true,
+    ),
+    Food(
+      name: 'Local Beer',
+      category: 'Alcohol',
+      price: 250,
+      alcoholic: true,
+    ),
+    Food(
+      name: 'Wine',
+      category: 'Alcohol',
+      price: 800,
+      alcoholic: true,
+    ),
+    Food(
+      name: 'Red Wine',
+      category: 'Alcohol',
+      price: 900,
+      alcoholic: true,
+    ),
+    Food(
+      name: 'White Wine',
+      category: 'Alcohol',
+      price: 900,
+      alcoholic: true,
+    ),
+    Food(
+      name: 'Whisky',
+      category: 'Alcohol',
+      price: 500,
+      alcoholic: true,
+    ),
+    Food(
+      name: 'Vodka',
+      category: 'Alcohol',
+      price: 700,
+      alcoholic: true,
+    ),
+    Food(
+      name: 'Rum',
+      category: 'Alcohol',
+      price: 700,
+      alcoholic: true,
+    ),
+    Food(
+      name: 'Brandy',
+      category: 'Alcohol',
+      price: 2000,
+      alcoholic: true,
+    ),
+  ];
+
+  // ==========================================================
+  // CART / ORDERS / FINANCE
+  // ==========================================================
+
+  final List<CartItem> cart = [];
+
+  final List<RestaurantOrder> orders = [];
+
+  final List<Expense> expenses = [];
+
+  final List<StaffMember> staff = [
+    StaffMember(
+      name: 'Hari Neupane',
+      role: 'Manager',
+      present: true,
+    ),
+    StaffMember(
+      name: 'Kitchen Staff',
+      role: 'Chef',
+      present: true,
+    ),
+    StaffMember(
+      name: 'Restaurant Staff',
+      role: 'Waiter',
+      present: false,
+    ),
+    StaffMember(
+      name: 'Cashier',
+      role: 'Cashier',
+      present: true,
+    ),
+  ];
+
+  double get cartTotal {
+    return cart.fold(
+      0,
+      (sum, item) => sum + item.total,
+    );
+  }
+
+  double get totalSales {
+    return orders
+        .where(
+          (order) => order.status != 'Cancelled',
+        )
+        .fold(
+          0,
+          (sum, order) => sum + order.total,
+        );
+  }
+
+  double get totalExpenses {
+    return expenses.fold(
+      0,
+      (sum, expense) => sum + expense.amount,
+    );
+  }
+
+  double get netIncome {
+    return totalSales - totalExpenses;
+  }
+
+  // ==========================================================
+  // CATEGORIES
+  // ==========================================================
+
+  List<String> get categories {
+    return [
+      'All',
+      ...menu.map((food) => food.category).toSet(),
+    ];
+  }
+
+  List<Food> get filteredMenu {
+    return menu.where((food) {
+      final categoryMatch =
+          selectedCategory == 'All' ||
+              food.category == selectedCategory;
+
+      final searchMatch =
+          searchText.isEmpty ||
+              food.name
+                  .toLowerCase()
+                  .contains(searchText.toLowerCase());
+
+      return categoryMatch && searchMatch;
+    }).toList();
+  }
+
+  // ==========================================================
+  // ADD TO CART
+  // ==========================================================
+
+  void addToCart(Food food) {
+    if (!food.available) return;
+
+    setState(() {
+      final index = cart.indexWhere(
+        (item) => item.food.name == food.name,
+      );
+
+      if (index >= 0) {
+        cart[index].quantity++;
+      } else {
+        cart.add(
+          CartItem(
+            food: food,
+          ),
+        );
+      }
+    });
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          '${food.name} added to order',
+        ),
+        duration: const Duration(
+          milliseconds: 900,
+        ),
+      ),
+    );
+  }
+
+  // ==========================================================
+  // BUILD
+  // ==========================================================
+
+  @override
+  Widget build(BuildContext context) {
+    final pages = [
+      dashboardPage(),
+      menuPage(),
+      ordersPage(),
+      kitchenPage(),
+      staffPage(),
+      financePage(),
+    ];
+
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text(
+          'Namaste Restaurant',
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+      ),
+      drawer: buildDrawer(),
+      body: pages[pageIndex],
+      floatingActionButton: cart.isNotEmpty
+          ? FloatingActionButton.extended(
+              onPressed: showCart,
+              backgroundColor: Colors.blue,
+              foregroundColor: Colors.white,
+              icon: const Icon(
+                Icons.shopping_cart,
+              ),
+              label: Text(
+                'Cart ${cart.length}',
+              ),
+            )
+          : null,
+      bottomNavigationBar: NavigationBar(
+        selectedIndex:
+            pageIndex > 4 ? 0 : pageIndex,
+        onDestinationSelected: (index) {
+          setState(() {
+            pageIndex = index;
+          });
+        },
+        destinations: const [
+          NavigationDestination(
+            icon: Icon(
+              Icons.dashboard_outlined,
+            ),
+            selectedIcon: Icon(
+              Icons.dashboard,
+            ),
+            label: 'Home',
+          ),
+          NavigationDestination(
+            icon: Icon(
+              Icons.restaurant_menu_outlined,
+            ),
+            selectedIcon: Icon(
+              Icons.restaurant_menu,
+            ),
+            label: 'Menu',
+          ),
+          NavigationDestination(
+            icon: Icon(
+              Icons.receipt_long_outlined,
+            ),
+            selectedIcon: Icon(
+              Icons.receipt_long,
+            ),
+            label: 'Orders',
+          ),
+          NavigationDestination(
+            icon: Icon(
+              Icons.soup_kitchen_outlined,
+            ),
+            selectedIcon: Icon(
+              Icons.soup_kitchen,
+            ),
+            label: 'Kitchen',
+          ),
+          NavigationDestination(
+            icon: Icon(
+              Icons.people_outline,
+            ),
+            selectedIcon: Icon(
+              Icons.people,
+            ),
+            label: 'Staff',
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ==========================================================
+  // DRAWER
+  // ==========================================================
+
+  Drawer buildDrawer() {
+    return Drawer(
+      child: ListView(
+        padding: EdgeInsets.zero,
+        children: [
+          DrawerHeader(
+            decoration: const BoxDecoration(
+              gradient: LinearGradient(
+                colors: [
+                  Colors.blue,
+                  Color(0xff0d47a1),
+                ],
+              ),
+            ),
+            child: Column(
+              crossAxisAlignment:
+                  CrossAxisAlignment.start,
+              children: const [
+                Icon(
+                  Icons.restaurant,
+                  color: Colors.white,
+                  size: 45,
+                ),
+                SizedBox(height: 10),
+                Text(
+                  'Namaste Restaurant',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 22,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                Text(
+                  'Management System',
+                  style: TextStyle(
+                    color: Colors.white70,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          drawerTile(
+            Icons.dashboard,
+            'Dashboard',
+            0,
+          ),
+          drawerTile(
+            Icons.restaurant_menu,
+            'Menu & Ordering',
+            1,
+          ),
+          drawerTile(
+            Icons.receipt_long,
+            'Orders & Billing',
+            2,
+          ),
+          drawerTile(
+            Icons.soup_kitchen,
+            'Kitchen Display',
+            3,
+          ),
+          drawerTile(
+            Icons.people,
+            'Staff Attendance',
+            4,
+          ),
+          drawerTile(
+            Icons.account_balance_wallet,
+            'Sales & Expenses',
+            5,
+          ),
+          const Divider(),
+          const ListTile(
+            leading: Icon(
+              Icons.location_on,
+              color: Colors.blue,
+            ),
+            title: Text(
+              'In front of Hariyokharka Hospital',
+            ),
+          ),
+          const ListTile(
+            leading: Icon(
+              Icons.person,
+              color: Colors.blue,
+            ),
+            title: Text(
+              'Developed by Hari Neupane',
+            ),
+          ),
+          ListTile(
+            leading: const Icon(
+              Icons.logout,
+              color: Colors.red,
+            ),
+            title: const Text('Logout'),
+            onTap: () {
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => const LoginPage(),
+                ),
+              );
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget drawerTile(
+    IconData icon,
+    String title,
+    int index,
+  ) {
+    return ListTile(
+      leading: Icon(icon),
+      title: Text(title),
+      onTap: () {
+        setState(() {
+          pageIndex = index;
+        });
+
+        Navigator.pop(context);
+      },
+    );
+  }
+
+  // ==========================================================
+  // DASHBOARD
+  // ==========================================================
+
+  Widget dashboardPage() {
+    final pendingOrders = orders
+        .where(
+          (order) => order.status == 'Pending',
+        )
+        .length;
+
+    final presentStaff =
+        staff.where((s) => s.present).length;
+
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment:
+            CrossAxisAlignment.start,
+        children: [
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(24),
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(
+                colors: [
+                  Colors.blue,
+                  Color(0xff0d47a1),
+                ],
+              ),
+              borderRadius:
+                  BorderRadius.circular(22),
+            ),
+            child: const Column(
+              crossAxisAlignment:
+                  CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Namaste 🙏',
+                  style: TextStyle(
+                    color: Colors.white70,
+                    fontSize: 18,
+                  ),
+                ),
+                SizedBox(height: 5),
+                Text(
+                  'Restaurant Dashboard',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 27,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                SizedBox(height: 5),
+                Text(
+                  'Namaste Restaurant Management System',
+                  style: TextStyle(
+                    color: Colors.white70,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 20),
+          GridView.count(
+            crossAxisCount: 2,
+            shrinkWrap: true,
+            physics:
+                const NeverScrollableScrollPhysics(),
+            crossAxisSpacing: 12,
+            mainAxisSpacing: 12,
+            childAspectRatio: 1.45,
+            children: [
+              dashboardCard(
+                'Orders',
+                '${orders.length}',
+                Icons.receipt_long,
+              ),
+              dashboardCard(
+                'Sales',
+                'Rs. ${totalSales.toStringAsFixed(0)}',
+                Icons.payments,
+              ),
+              dashboardCard(
+                'Expenses',
+                'Rs. ${totalExpenses.toStringAsFixed(0)}',
+                Icons.money_off,
+              ),
+              dashboardCard(
+                'Net Income',
+                'Rs. ${netIncome.toStringAsFixed(0)}',
+                Icons.account_balance_wallet,
+              ),
+              dashboardCard(
+                'Pending',
+                '$pendingOrders',
+                Icons.pending_actions,
+              ),
+              dashboardCard(
+                'Staff Present',
+                '$presentStaff',
+                Icons.people,
+              ),
+            ],
+          ),
+          const SizedBox(height: 25),
+          const Text(
+            'Quick Actions',
+            style: TextStyle(
+              fontSize: 22,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              Expanded(
+                child: quickButton(
+                  'New Order',
+                  Icons.add_shopping_cart,
+                  1,
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: quickButton(
+                  'Kitchen',
+                  Icons.soup_kitchen,
+                  3,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          Row(
+            children: [
+              Expanded(
+                child: quickButton(
+                  'Billing',
+                  Icons.receipt,
+                  2,
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: quickButton(
+                  'Finance',
+                  Icons.payments,
+                  5,
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget dashboardCard(
+    String title,
+    String value,
+    IconData icon,
+  ) {
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(14),
+        child: Column(
+          crossAxisAlignment:
+              CrossAxisAlignment.start,
+          children: [
+            Icon(
+              icon,
+              color: Colors.blue,
+              size: 28,
+            ),
+            const Spacer(),
+            Text(
+              value,
+              style: const TextStyle(
+                fontSize: 19,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            Text(
+              title,
+              style: const TextStyle(
+                color: Colors.grey,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget quickButton(
+    String title,
+    IconData icon,
+    int page,
+  ) {
+    return ElevatedButton.icon(
+      onPressed: () {
+        setState(() {
+          pageIndex = page;
+        });
+      },
+      icon: Icon(icon),
+      label: Text(title),
+    );
+  }
+
+  // ==========================================================
+  // MENU PAGE
+  // ==========================================================
+
+  Widget menuPage() {
+    return Column(
+      children: [
+        Padding(
+          padding: const EdgeInsets.fromLTRB(
+            16,
+            16,
+            16,
+            8,
+          ),
+          child: TextField(
+            onChanged: (value) {
+              setState(() {
+                searchText = value;
+              });
+            },
+            decoration: const InputDecoration(
+              hintText: 'Search food or beverage...',
+              prefixIcon: Icon(Icons.search),
+            ),
+          ),
+        ),
+        SizedBox(
+          height: 55,
+          child: ListView.builder(
+            scrollDirection: Axis.horizontal,
+            padding:
+                const EdgeInsets.symmetric(
+              horizontal: 16,
+            ),
+            itemCount: categories.length,
+            itemBuilder: (context, index) {
+              final category =
+                  categories[index];
+
+              final selected =
+                  selectedCategory ==
+                      category;
+
+              return Padding(
+                padding:
+                    const EdgeInsets.only(
+                  right: 8,
+                ),
+                child: ChoiceChip(
+                  label: Text(category),
+                  selected: selected,
+                  onSelected: (_) {
+                    setState(() {
+                      selectedCategory =
+                          category;
+                    });
+                  },
+                ),
+              );
+            },
+          ),
+        ),
+        Expanded(
+          child: filteredMenu.isEmpty
+              ? const Center(
+                  child: Text(
+                    'No menu item found',
+                  ),
+                )
+              : ListView.builder(
+                  padding:
+                      const EdgeInsets.all(16),
+                  itemCount:
+                      filteredMenu.length,
+                  itemBuilder:
+                      (context, index) {
+                    return foodCard(
+                      filteredMenu[index],
+                    );
+                  },
+                ),
+        ),
+      ],
+    );
+  }
+
+  Widget foodCard(Food food) {
+    final alcohol = food.alcoholic;
+
+    return Card(
+      margin:
+          const EdgeInsets.only(bottom: 10),
+      child: ListTile(
+        contentPadding:
+            const EdgeInsets.all(10),
+        leading: CircleAvatar(
+          radius: 28,
+          backgroundColor:
+              alcohol
+                  ? Colors.amber.shade50
+                  : Colors.blue.shade50,
+          child: Icon(
+            alcohol
+                ? Icons.local_bar
+                : Icons.restaurant,
+            color:
+                alcohol
+                    ? Colors.amber.shade800
+                    : Colors.blue,
+          ),
+        ),
+        title: Row(
+          children: [
+            Expanded(
+              child: Text(
+                food.name,
+                style: const TextStyle(
+                  fontWeight:
+                      FontWeight.bold,
+                ),
+              ),
+            ),
+            if (alcohol)
+              const Icon(
+                Icons.local_bar,
+                size: 18,
+                color: Colors.amber,
+              ),
+          ],
+        ),
+        subtitle: Text(
+          '${food.category} • ${food.available ? 'Available' : 'Unavailable'}',
+        ),
+        trailing: Column(
+          mainAxisAlignment:
+              MainAxisAlignment.center,
+          children: [
+            Text(
+              'Rs. ${food.price.toStringAsFixed(0)}',
+              style: TextStyle(
+                color: alcohol
+                    ? Colors.amber.shade800
+                    : Colors.blue,
+                fontWeight:
+                    FontWeight.bold,
+              ),
+            ),
+            InkWell(
+              onTap: food.available
+                  ? () => addToCart(food)
+                  : null,
+              child: Text(
+                'ADD',
+                style: TextStyle(
+                  color: food.available
+                      ? Colors.green
+                      : Colors.grey,
+                  fontWeight:
+                      FontWeight.bold,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // ==========================================================
+  // CART
+  // ==========================================================
+
+  void showCart() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      builder: (_) {
+        return StatefulBuilder(
+          builder: (
+            context,
+            modalSetState,
+          ) {
+            return SizedBox(
+              height:
+                  MediaQuery.of(context)
+                          .size
+                          .height *
+                      .82,
+              child: Padding(
+                padding:
+                    const EdgeInsets.all(20),
+                child: Column(
+                  crossAxisAlignment:
+                      CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Current Order',
+                      style: TextStyle(
+                        fontSize: 25,
+                        fontWeight:
+                            FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 15),
+                    Expanded(
+                      child: cart.isEmpty
+                          ? const Center(
+                              child: Text(
+                                'Cart is empty',
+                              ),
+                            )
+                          : ListView.builder(
+                              itemCount:
+                                  cart.length,
+                              itemBuilder:
+                                  (
+                                    context,
+                                    index,
+                                  ) {
+                                final item =
+                                    cart[index];
+
+                                return Card(
+                                  child:
+                                      ListTile(
+                                    leading:
+                                        IconButton(
+                                      onPressed:
+                                          () {
+                                        setState(
+                                          () {
+                                            if (item.quantity >
+                                                1) {
+                                              item.quantity--;
+                                            } else {
+                                              cart.removeAt(
+                                                index,
+                                              );
+                                            }
+                                          },
+                                        );
+                                        modalSetState(
+                                          () {},
+                                        );
+                                      },
+                                      icon:
+                                          const Icon(
+                                        Icons
+                                            .remove_circle,
+                                        color:
+                                            Colors.red,
+                                      ),
+                                    ),
+                                    title:
+                                        Text(
+                                      item.food
+                                          .name,
+                                    ),
+                                    subtitle:
+                                        Text(
+                                      '${item.quantity} × Rs. ${item.food.price.toStringAsFixed(0)}',
+                                    ),
+                                    trailing:
+                                        Text(
+                                      'Rs. ${item.total.toStringAsFixed(0)}',
+                                      style:
+                                          const TextStyle(
+                                        fontWeight:
+                                            FontWeight.bold,
+                                        color:
+                                            Colors.blue,
+                                      ),
+                                    ),
+                                  ),
+                                );
+                              },
+                            ),
+                    ),
+                    const Divider(),
+                    Row(
+                      mainAxisAlignment:
+                          MainAxisAlignment
+                              .spaceBetween,
+                      children: [
+                        const Text(
+                          'TOTAL',
+                          style:
+                              TextStyle(
+                            fontSize: 20,
+                            fontWeight:
+                                FontWeight.bold,
+                          ),
+                        ),
+                        Text(
+                          'Rs. ${cartTotal.toStringAsFixed(0)}',
+                          style:
+                              const TextStyle(
+                            fontSize: 22,
+                            color:
+                                Colors.blue,
+                            fontWeight:
+                                FontWeight.bold,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 15),
+                    ElevatedButton.icon(
+                      onPressed: cart.isEmpty
+                          ? null
+                          : () {
+                              placeOrder();
+                            },
+                      icon: const Icon(
+                        Icons.check,
+                      ),
+                      label: const Text(
+                        'CONFIRM ORDER',
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  // ==========================================================
+  // PLACE ORDER
+  // ==========================================================
+
+  void placeOrder() {
+    if (cart.isEmpty) return;
+
+    final copiedItems =
+        cart.map(
+      (item) {
+        return CartItem(
+          food: item.food,
+          quantity: item.quantity,
+        );
+      },
+    ).toList();
+
+    final order =
+        RestaurantOrder(
+      id: 1001 + orders.length,
+      items: copiedItems,
+      total: cartTotal,
+      time: DateTime.now(),
+    );
+
+    setState(() {
+      orders.insert(0, order);
+      cart.clear();
+    });
+
+    Navigator.pop(context);
+
+    ScaffoldMessenger.of(context)
+        .showSnackBar(
+      SnackBar(
+        content: Text(
+          'Order #${order.id} created',
+        ),
+      ),
+    );
+  }
+
+  // ==========================================================
+  // ORDERS
+  // ==========================================================
+
+  Widget ordersPage() {
+    return Column(
+      children: [
+        Padding(
+          padding: const EdgeInsets.all(16),
+          child: Row(
+            children: [
+              const Expanded(
+                child: Text(
+                  'Orders & Billing',
+                  style: TextStyle(
+                    fontSize: 27,
+                    fontWeight:
+                        FontWeight.bold,
+                  ),
+                ),
+              ),
+              ElevatedButton.icon(
+                onPressed: () {
+                  setState(() {
+                    pageIndex = 1;
+                  });
+                },
+                icon: const Icon(Icons.add),
+                label: const Text('NEW'),
+              ),
+            ],
+          ),
+        ),
+        Expanded(
+          child: orders.isEmpty
+              ? const Center(
+                  child: Column(
+                    mainAxisAlignment:
+                        MainAxisAlignment
+                            .center,
+                    children: [
+                      Icon(
+                        Icons.receipt_long,
+                        size: 80,
+                        color:
+                            Colors.blueGrey,
+                      ),
+                      SizedBox(height: 15),
+                      Text(
+                        'No orders yet',
+                        style:
+                            TextStyle(
+                          fontSize: 20,
+                        ),
+                      ),
+                    ],
+                  ),
+                )
+              : ListView.builder(
+                  padding:
+                      const EdgeInsets.all(16),
+                  itemCount:
+                      orders.length,
+                  itemBuilder:
+                      (context, index) {
+                    return orderCard(
+                      orders[index],
+                    );
+                  },
+                ),
+        ),
+      ],
+    );
+  }
+
+  Widget orderCard(
+    RestaurantOrder order,
+  ) {
+    Color statusColor =
+        Colors.orange;
+
+    if (order.status ==
+        'Preparing') {
+      statusColor = Colors.blue;
+    } else if (order.status ==
+        'Ready') {
+      statusColor = Colors.green;
+    } else if (order.status ==
+        'Completed') {
+      statusColor = Colors.teal;
+    } else if (order.status ==
+        'Cancelled') {
+      statusColor = Colors.red;
+    }
+
+    return Card(
+      margin:
+          const EdgeInsets.only(
+        bottom: 12,
+      ),
+      child: ExpansionTile(
+        leading: CircleAvatar(
+          backgroundColor:
+              Colors.blue,
+          foregroundColor:
+              Colors.white,
+          child: Text(
+            '${order.id}',
+            style:
+                const TextStyle(
+              fontSize: 10,
+            ),
+          ),
+        ),
+        title: Text(
+          'Order #${order.id}',
+          style:
+              const TextStyle(
+            fontWeight:
+                FontWeight.bold,
+          ),
+        ),
+        subtitle: Text(
+          'Rs. ${order.total.toStringAsFixed(0)} • ${order.paymentMethod}',
+        ),
+        trailing: Chip(
+          label: Text(
+            order.status,
+          ),
+          labelStyle: TextStyle(
+            color: statusColor,
+            fontWeight:
+                FontWeight.bold,
+          ),
+        ),
+        children: [
+          ...order.items.map(
+            (item) {
+              return ListTile(
+                leading: Icon(
+                  item.food.alcoholic
+                      ? Icons.local_bar
+                      : Icons.restaurant,
+                  color:
+                      item.food.alcoholic
+                          ? Colors.amber
+                          : Colors.blue,
+                ),
+                title: Text(
+                  item.food.name,
+                ),
+                subtitle: Text(
+                  '${item.quantity} × Rs. ${item.food.price.toStringAsFixed(0)}',
+                ),
+                trailing: Text(
+                  'Rs. ${item.total.toStringAsFixed(0)}',
+                ),
+              );
+            },
+          ),
+          Padding(
+            padding:
+                const EdgeInsets.all(12),
+            child: Row(
+              children: [
+                Expanded(
+                  child:
+                      OutlinedButton.icon(
+                    onPressed: () {
+                      showInvoice(order);
+                    },
+                    icon: const Icon(
+                      Icons.receipt,
+                    ),
+                    label: const Text(
+                      'INVOICE',
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child:
+                      ElevatedButton.icon(
+                    onPressed: () {
+                      updateOrderStatus(
+                        order,
+                      );
+                    },
+                    icon: const Icon(
+                      Icons.update,
+                    ),
+                    label: const Text(
+                      'STATUS',
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ==========================================================
+  // STATUS
+  // ==========================================================
+
+  void updateOrderStatus(
+    RestaurantOrder order,
+  ) {
+    final statuses = [
+      'Pending',
+      'Preparing',
+      'Ready',
+      'Completed',
+      'Cancelled',
+    ];
+
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text(
+            'Order #${order.id}',
+          ),
+          content: Column(
+            mainAxisSize:
+                MainAxisSize.min,
+            children:
+                statuses.map(
+              (status) {
+                return ListTile(
+                  title: Text(status),
+                  leading: Icon(
+                    status ==
+                            order.status
+                        ? Icons
+                            .radio_button_checked
+                        : Icons
+                            .radio_button_off,
+                    color: Colors.blue,
+                  ),
+                  onTap: () {
+                    setState(() {
+                      order.status =
+                          status;
+                    });
+
+                    Navigator.pop(
+                      context,
+                    );
+                  },
+                );
+              },
+            ).toList(),
+          ),
+        );
+      },
+    );
+  }
+
+  // ==========================================================
+  // INVOICE
+  // ==========================================================
+
+  void showInvoice(
+    RestaurantOrder order,
+  ) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Column(
+            children: [
+              Icon(
+                Icons.restaurant,
+                color: Colors.blue,
+                size: 40,
+              ),
+              SizedBox(height: 5),
+              Text(
+                'NAMASTE RESTAURANT',
+              ),
+              Text(
+                'In front of Hariyokharka Hospital',
+                style: TextStyle(
+                  fontSize: 11,
+                ),
+              ),
+            ],
+          ),
+          content:
+              SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment:
+                  CrossAxisAlignment
+                      .start,
+              children: [
+                const Divider(),
+                Text(
+                  'Invoice #${order.id}',
+                  style:
+                      const TextStyle(
+                    fontWeight:
+                        FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(
+                  height: 10,
+                ),
+                ...order.items.map(
+                  (item) {
+                    return Padding(
+                      padding:
+                          const EdgeInsets
+                              .symmetric(
+                        vertical: 4,
+                      ),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: Text(
+                              '${item.food.name} x${item.quantity}',
+                            ),
+                          ),
+                          Text(
+                            'Rs. ${item.total.toStringAsFixed(0)}',
+                          ),
+                        ],
+                      ),
+                    );
+                  },
+                ),
+                const Divider(),
+                Row(
+                  mainAxisAlignment:
+                      MainAxisAlignment
+                          .spaceBetween,
+                  children: [
+                    const Text(
+                      'TOTAL',
+                      style:
+                          TextStyle(
+                        fontWeight:
+                            FontWeight.bold,
+                      ),
+                    ),
+                    Text(
+                      'Rs. ${order.total.toStringAsFixed(0)}',
+                      style:
+                          const TextStyle(
+                        color:
+                            Colors.blue,
+                        fontWeight:
+                            FontWeight.bold,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(
+                  height: 10,
+                ),
+                Text(
+                  'Payment: ${order.paymentMethod}',
+                ),
+                const SizedBox(
+                  height: 15,
+                ),
+                const Center(
+                  child: Text(
+                    'Thank you for visiting Namaste Restaurant!',
+                    textAlign:
+                        TextAlign.center,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.pop(
+                  context,
+                );
+              },
+              child: const Text(
+                'CLOSE',
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  // ==========================================================
+  // KITCHEN
+  // ==========================================================
+
+  Widget kitchenPage() {
+    final activeOrders =
+        orders.where(
+      (order) {
+        return order.status !=
+                'Completed' &&
+            order.status !=
+                'Cancelled';
+      },
+    ).toList();
+
+    return Column(
+      children: [
+        Container(
+          margin:
+              const EdgeInsets.all(16),
+          padding:
+              const EdgeInsets.all(20),
+          width: double.infinity,
+          decoration:
+              BoxDecoration(
+            gradient:
+                const LinearGradient(
+              colors: [
+                Colors.blue,
+                Color(0xff0d47a1),
+              ],
+            ),
+            borderRadius:
+                BorderRadius.circular(
+              20,
+            ),
+          ),
+          child: Row(
+            children: [
+              const Icon(
+                Icons.soup_kitchen,
+                color: Colors.white,
+                size: 45,
+              ),
+              const SizedBox(
+                width: 15,
+              ),
+              Column(
+                crossAxisAlignment:
+                    CrossAxisAlignment
+                        .start,
+                children: [
+                  const Text(
+                    'Kitchen Display',
+                    style:
+                        TextStyle(
+                      color:
+                          Colors.white,
+                      fontSize: 24,
+                      fontWeight:
+                          FontWeight.bold,
+                    ),
+                  ),
+                  Text(
+                    '${activeOrders.length} active orders',
+                    style:
+                        const TextStyle(
+                      color:
+                          Colors.white70,
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+        Expanded(
+          child: activeOrders.isEmpty
+              ? const Center(
+                  child: Text(
+                    'No active orders',
+                    style:
+                        TextStyle(
+                      fontSize: 18,
+                    ),
+                  ),
+                )
+              : ListView.builder(
+                  padding:
+                      const EdgeInsets
+                          .all(16),
+                  itemCount:
+                      activeOrders
+                          .length,
+                  itemBuilder:
+                      (context, index) {
+                    return kitchenCard(
+                      activeOrders[
+                          index],
+                    );
+                  },
+                ),
+        ),
+      ],
+    );
+  }
+
+  Widget kitchenCard(
+    RestaurantOrder order,
+  ) {
+    return Card(
+      margin:
+          const EdgeInsets.only(
+        bottom: 15,
+      ),
+      child: Padding(
+        padding:
+            const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment:
+              CrossAxisAlignment
+                  .start,
+          children: [
+            Row(
+              mainAxisAlignment:
+                  MainAxisAlignment
+                      .spaceBetween,
+              children: [
+                Text(
+                  'ORDER #${order.id}',
+                  style:
+                      const TextStyle(
+                    fontSize: 20,
+                    fontWeight:
+                        FontWeight.bold,
+                  ),
+                ),
+                Chip(
+                  label:
+                      Text(order.status),
+                ),
+              ],
+            ),
+            const Divider(),
+            ...order.items.map(
+              (item) {
+                return ListTile(
+                  contentPadding:
+                      EdgeInsets.zero,
+                  leading: Icon(
+                    item.food
+                            .alcoholic
+                        ? Icons.local_bar
+                        : Icons.restaurant,
+                    color: item.food
+                            .alcoholic
+                        ? Colors.amber
+                        : Colors.blue,
+                  ),
+                  title: Text(
+                    item.food.name,
+                  ),
+                  trailing: Text(
+                    'x ${item.quantity}',
+                    style:
+                        const TextStyle(
+                      fontWeight:
+                          FontWeight.bold,
+                    ),
+                  ),
+                );
+              },
+            ),
+            ElevatedButton(
+              onPressed: () {
+                setState(() {
+                  if (order.status ==
+                      'Pending') {
+                    order.status =
+                        'Preparing';
+                  } else if (order.status ==
+                      'Preparing') {
+                    order.status =
+                        'Ready';
+                  } else {
+                    order.status =
+                        'Completed';
+                  }
+                });
+              },
+              child: Text(
+                order.status ==
+                        'Pending'
+                    ? 'START PREPARING'
+                    : order.status ==
+                            'Preparing'
+                        ? 'MARK READY'
+                        : 'COMPLETE ORDER',
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // ==========================================================
+  // STAFF
+  // ==========================================================
+
+  Widget staffPage() {
+    final present =
+        staff.where(
+      (person) =>
+          person.present,
+    ).length;
+
+    return ListView(
+      padding:
+          const EdgeInsets.all(16),
+      children: [
+        const Text(
+          'Staff Attendance',
+          style: TextStyle(
+            fontSize: 27,
+            fontWeight:
+                FontWeight.bold,
+          ),
+        ),
+        const SizedBox(height: 5),
+        Text(
+          '$present of ${staff.length} staff present today',
+        ),
+        const SizedBox(
+          height: 20,
+        ),
+        ...staff.asMap().entries.map(
+          (entry) {
+            final index =
+                entry.key;
+            final person =
+                entry.value;
+
+            return Card(
+              child: ListTile(
+                leading:
+                    CircleAvatar(
+                  backgroundColor:
+                      person.present
+                          ? Colors.green
+                              .shade50
+                          : Colors
+                              .grey
+                              .shade200,
+                  child: Icon(
+                    Icons.person,
+                    color: person
+                            .present
+                        ? Colors.green
+                        : Colors.grey,
+                  ),
+                ),
+                title: Text(
+                  person.name,
+                  style:
+                      const TextStyle(
+                    fontWeight:
+                        FontWeight.bold,
+                  ),
+                ),
+                subtitle:
+                    Text(person.role),
+                trailing: Switch(
+                  value:
+                      person.present,
+                  onChanged:
+                      (value) {
+                    setState(() {
+                      staff[index]
+                              .present =
+                          value;
+                    });
+                  },
+                ),
+              ),
+            );
+          },
+        ),
+      ],
+    );
+  }
+
+  // ==========================================================
+  // FINANCE
+  // ==========================================================
+
+  Widget financePage() {
+    return ListView(
+      padding:
+          const EdgeInsets.all(16),
+      children: [
+        const Text(
+          'Sales & Expenses',
+          style: TextStyle(
+            fontSize: 27,
+            fontWeight:
+                FontWeight.bold,
+          ),
+        ),
+        const SizedBox(
+          height: 20,
+        ),
+        financeCard(
+          'Total Sales',
+          totalSales,
+          Icons.trending_up,
+        ),
+        financeCard(
+          'Total Expenses',
+          totalExpenses,
+          Icons.trending_down,
+        ),
+        financeCard(
+          'Net Income',
+          netIncome,
+          Icons.account_balance_wallet,
+        ),
+        const SizedBox(
+          height: 15,
+        ),
+        ElevatedButton.icon(
+          onPressed: addExpense,
+          icon: const Icon(
+            Icons.add,
+          ),
+          label: const Text(
+            'ADD EXPENSE',
+          ),
+        ),
+        const SizedBox(
+          height: 20,
+        ),
+        const Text(
+          'Expense Records',
+          style: TextStyle(
+            fontSize: 21,
+            fontWeight:
+                FontWeight.bold,
+          ),
+        ),
+        const SizedBox(
+          height: 10,
+        ),
+        if (expenses.isEmpty)
+          const Card(
+            child: Padding(
+              padding:
+                  EdgeInsets.all(20),
+              child: Center(
+                child: Text(
+                  'No expenses recorded',
+                ),
+              ),
+            ),
+          ),
+        ...expenses.map(
+          (expense) {
+            return Card(
+              child: ListTile(
+                leading:
+                    const CircleAvatar(
+                  backgroundColor:
+                      Colors.red,
+                  child: Icon(
+                    Icons.money_off,
+                    color:
+                        Colors.white,
+                  ),
+                ),
+                title: Text(
+                  expense.title,
+                ),
+                subtitle: Text(
+                  '${expense.date.day}/${expense.date.month}/${expense.date.year}',
+                ),
+                trailing: Text(
+                  'Rs. ${expense.amount.toStringAsFixed(0)}',
+                  style:
+                      const TextStyle(
+                    color: Colors.red,
+                    fontWeight:
+                        FontWeight.bold,
+                  ),
+                ),
+              ),
+            );
+          },
+        ),
+      ],
+    );
+  }
+
+  Widget financeCard(
+    String title,
+    double amount,
+    IconData icon,
+  ) {
+    return Card(
+      margin:
+          const EdgeInsets.only(
+        bottom: 10,
+      ),
+      child: ListTile(
+        leading:
+            CircleAvatar(
+          backgroundColor:
+              Colors.blue.shade50,
+          child: Icon(
+            icon,
+            color: Colors.blue,
+          ),
+        ),
+        title: Text(title),
+        trailing: Text(
+          'Rs. ${amount.toStringAsFixed(0)}',
+          style:
+              const TextStyle(
+            fontSize: 18,
+            fontWeight:
+                FontWeight.bold,
+            color: Colors.blue,
+          ),
+        ),
+      ),
+    );
+  }
+
+  // ==========================================================
+  // ADD EXPENSE
+  // ==========================================================
+
+  void addExpense() {
+    final title =
+        TextEditingController();
+    final amount =
+        TextEditingController();
+
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text(
+            'Add Expense',
+          ),
+          content: Column(
+            mainAxisSize:
+                MainAxisSize.min,
+            children: [
+              TextField(
+                controller: title,
+                decoration:
+                    const InputDecoration(
+                  labelText:
+                      'Expense name',
+                ),
+              ),
+              const SizedBox(
+                height: 12,
+              ),
+              TextField(
+                controller: amount,
+                keyboardType:
+                    TextInputType
+                        .number,
+                decoration:
+                    const InputDecoration(
+                  labelText:
+                      'Amount',
+                  prefixText:
+                      'Rs. ',
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.pop(
+                  context,
+                );
+              },
+              child:
+                  const Text('CANCEL'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                final value =
+                    double.tryParse(
+                  amount.text,
+                );
+
+                if (title.text
+                        .trim()
+                        .isEmpty ||
+                    value == null) {
+                  return;
+                }
+
+                setState(() {
+                  expenses.add(
+                    Expense(
+                      title:
+                          title.text
+                              .trim(),
+                      amount: value,
+                      date:
+                          DateTime.now(),
+                    ),
+                  );
+                });
+
+                Navigator.pop(
+                  context,
+                );
+              },
+              child:
+                  const Text('SAVE'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+}
